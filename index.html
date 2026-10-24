@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WB tools</title>
+<meta name="description" content="The weather briefing tools let you survive">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪂</text></svg>">
+<style>
+  :root {
+    --side: #16273a;
+    --side-text: #c9d6e4;
+    --side-dim: #7f93a8;
+    --side-active: #243c56;
+    --accent: #f2b632;
+    --accent-ink: #2a1e00;
+    --main: #eef3f7;
+    --card: #ffffff;
+    --line: #d3dde6;
+    --text: #16273a;
+    --font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --main: #0d1824;
+      --card: #12202f;
+      --line: #223548;
+      --text: #dbe5ee;
+    }
+  }
+  :root[data-theme="dark"] {
+    --main: #0d1824;
+    --card: #12202f;
+    --line: #223548;
+    --text: #dbe5ee;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    font-family: var(--font);
+    background: var(--main);
+    color: var(--text);
+  }
+
+  /* Sidebar */
+  aside {
+    background: var(--side);
+    color: var(--side-text);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 18px 20px;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: #fff;
+    line-height: 1;
+  }
+  .brand h1 span { color: var(--accent); }
+  .brand p {
+    margin: 10px 0 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--side-dim);
+    max-width: 22ch;
+  }
+  nav {
+    margin: 32px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  nav button {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  nav button:hover { background: rgba(255,255,255,0.06); }
+  nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  nav button[aria-selected="true"] {
+    background: var(--side-active);
+    border-left-color: var(--accent);
+    color: #fff;
+  }
+  nav .name { font-weight: 600; font-size: 1rem; }
+  nav .desc { font-size: 0.8rem; color: var(--side-dim); }
+  nav button[aria-selected="true"] .desc { color: var(--side-text); }
+
+  .coffee {
+    margin-top: auto;
+    padding-top: 24px;
+  }
+  .coffee a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 14px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .coffee a:hover { filter: brightness(1.08); }
+  .coffee a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .coffee small {
+    display: block;
+    margin-top: 8px;
+    text-align: center;
+    color: var(--side-dim);
+    font-size: 0.75rem;
+  }
+
+  /* Main */
+  main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+    font-size: 0.9rem;
+  }
+  .bar strong { font-weight: 600; }
+  .bar a {
+    color: var(--text);
+    opacity: 0.75;
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .bar a:hover { opacity: 1; }
+  .frames { position: relative; flex: 1; min-height: 0; }
+  iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+    display: none;
+  }
+  iframe.active { display: block; }
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--side-dim);
+    pointer-events: none;
+  }
+
+  /* Mobile: nav becomes a horizontal strip */
+  @media (max-width: 760px) {
+    body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    aside { padding: 14px 12px 10px; overflow: visible; }
+    .brand p { max-width: none; font-size: 0.8rem; margin-top: 4px; }
+    .brand h1 { font-size: 1.4rem; }
+    nav { flex-direction: row; overflow-x: auto; margin-top: 12px; gap: 6px; padding-bottom: 4px; }
+    nav button { border-left: 0; border-bottom: 3px solid transparent; flex: 0 0 auto; }
+    nav button[aria-selected="true"] { border-bottom-color: var(--accent); }
+    nav .desc { display: none; }
+    .coffee { padding-top: 10px; margin-top: 0; }
+    .coffee small { display: none; }
+    .coffee a { padding: 8px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <h1>WB <span>tools</span></h1>
+    <p>The weather briefing tools that let you survive</p>
+  </div>
+
+  <nav id="nav" role="tablist" aria-label="Tools"></nav>
+
+  <div class="coffee">
+    <a href="https://paypal.me/afriesinger" target="_blank" rel="noopener">☕ Spend a coffee</a>
+    <small>Via PayPal</small>
+  </div>
+</aside>
+
+<main>
+  <div class="bar">
+    <strong id="current">&nbsp;</strong>
+    <a id="external" href="#" target="_blank" rel="noopener">Open in new tab</a>
+  </div>
+  <div class="frames" id="frames">
+    <div class="loading" id="loading">Loading tool…</div>
+  </div>
+</main>
+
+<script>
+  // Add new tools here.
+  const TOOLS = [
+    { id: "tasks",       name: "WB tasks",       desc: "Briefing task checklist", url: "https://afriesinger.github.io/WBtasks/" },
+    { id: "percentiles", name: "WB percentiles", desc: "Percentile lookup",       url: "https://afriesinger.github.io/WBpercentiles/" },
+    { id: "foehn",       name: "Föhn",           desc: "Föhn diagnosis",          url: "https://foehn.wetterfrosch.info/" }
+  ];
+
+  const nav = document.getElementById("nav");
+  const frames = document.getElementById("frames");
+  const loading = document.getElementById("loading");
+  const current = document.getElementById("current");
+  const external = document.getElementById("external");
+  const buttons = {}, iframes = {};
+
+  TOOLS.forEach(t => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "tab");
+    b.innerHTML = '<span class="name"></span><span class="desc"></span>';
+    b.querySelector(".name").textContent = t.name;
+    b.querySelector(".desc").textContent = t.desc;
+    b.addEventListener("click", () => show(t.id));
+    nav.appendChild(b);
+    buttons[t.id] = b;
+  });
+
+  function show(id) {
+    const tool = TOOLS.find(t => t.id === id) || TOOLS[0];
+    TOOLS.forEach(t => {
+      buttons[t.id].setAttribute("aria-selected", String(t.id === tool.id));
+      if (iframes[t.id]) iframes[t.id].classList.toggle("active", t.id === tool.id);
+    });
+    if (!iframes[tool.id]) {                       // lazy-load on first visit
+      const f = document.createElement("iframe");
+      f.title = tool.name;
+      f.src = tool.url;
+      f.loading = "lazy";
+      f.referrerPolicy = "no-referrer-when-downgrade";
+      f.addEventListener("load", () => { loading.style.display = "none"; });
+      frames.appendChild(f);
+      iframes[tool.id] = f;
+      f.classList.add("active");
+      loading.style.display = "grid";
+    } else {
+      loading.style.display = "none";
+    }
+    current.textContent = tool.name;
+    external.href = tool.url;
+    history.replaceState(null, "", "#" + tool.id);
+    document.title = tool.name + " – WB tools";
+  }
+
+  show(location.hash.slice(1) || TOOLS[0].id);
+  addEventListener("hashchange", () => show(location.hash.slice(1)));
+</script>
+</body>
+</html>
